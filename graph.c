@@ -95,6 +95,24 @@ coda_grph_compute_tc:
   return res;
 }
 
+MBVSTGraph* MBVSTGraph_create(Graph *g)
+{
+  size_t k,l;
+  MBVSTGraph* res = malloc(sizeof(*res));
+  res->grph = g;
+  res->edges = initl();
+  for (k = 0; k < g->sz; k++) {
+    for (l = k; l < g->sz; l++) {
+      if (g->m_adj[l][k] == 1) {
+        edge_t e = {l,k,0,0};
+        push(&res->edges,e);
+      }
+    }
+  }
+  return res;
+}
+
+
 Graph* mbvst_heuristic(Graph *g)
 {
   printf("%d\n",minimal_cut(g)); 

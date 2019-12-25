@@ -2,14 +2,23 @@
 #define __GRAPH__
 
 #include "tools.h"
+#include "list.h"
 
 typedef struct _Graph Graph;
 typedef const Graph CGraph;
 
 struct _Graph {
-  int**  m_adj;                 // Matice d'adjacence
+  int**  m_adj;                 // Matrice d'adjacence
   int**  m_transitive_closure;  // Matrice d'adjacence de la fermeture transitive
   size_t sz;                    // Taille de m_adj
+};
+
+typedef struct _GraphMBVST MBVSTGraph;
+typedef const MBVSTGraph CMBVSTGraph;
+
+struct _GraphMBVST {
+  Graph* grph; // Graphe
+  list   edges; // liste des arêtes avec poids
 };
 
 #ifdef __cplusplus
@@ -71,6 +80,23 @@ Inline size_t grph_formula(size_t nbVertex)
 {
   return (size_t)floor(nbVertex - 1 + 2 * 1.5 * ceil(sqrt((double)nbVertex)));
 }
+
+extern MBVSTGraph* MBVSTGraph_create(Graph *g);
+
+Inline void MBVSTGraph_add_edge(MBVSTGraph *g,edge_t e)
+{
+  g->grph = grph_add_edge(g->grph,e.f,e.s);
+  push(&g->edges,e);
+}
+
+Inline void MBVSTGraph_remove_edge(MBVSTGraph *g,edge_t e)
+{
+  g->grph = grph_remove_edge(g->grph,e.f,e.s);
+  pull(&g->edges);
+}
+
+Inline void MBVSTGraph_free(MBVSTGraph *g)
+{ freel(g->edges); grph_free(g->grph); xfree(g); }
 
 /* Return a cycle free tree graph */
 extern Graph* mbvst_heuristic(Graph *g);
