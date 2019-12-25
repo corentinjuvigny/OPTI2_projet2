@@ -82,6 +82,8 @@ int main()
 
   printf("%ld\n",grph_formula(m));
 
+  mbvst_heuristic(g);
+
   for (i = 0; i < m; i++)
     free(g->m_adj[i]);
   free(g->m_adj);

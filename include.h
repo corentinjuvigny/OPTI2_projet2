@@ -53,7 +53,9 @@ extern "C" {
 
 #define NO_ALLOCA 0
 
+#if 0
 const char* nameProcessus;
+#endif
 
 #ifdef __cplusplus
 }

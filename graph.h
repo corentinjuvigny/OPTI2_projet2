@@ -1,10 +1,6 @@
 #ifndef __GRAPH__
 #define __GRAPH__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "tools.h"
 
 typedef struct _Graph Graph;
@@ -15,6 +11,10 @@ struct _Graph {
   int**  m_transitive_closure;  // Matrice d'adjacence de la fermeture transitive
   size_t sz;                    // Taille de m_adj
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static void free_transitive_closure(Graph *g)
 {
@@ -64,12 +64,16 @@ Inline int edge_exists(CGraph* g,size_t a,size_t b)
 /* Return 1 if g is connected, else 0 */
 extern int grph_is_connected(CGraph *g);
 
+/* Generate a connected graph G = (V,E) with |V| = nbVertex & |E| = nbMaxEdges */
 Graph* grph_generator(size_t nbVertex,size_t nbMaxEdges);
 
 Inline size_t grph_formula(size_t nbVertex)
 {
   return (size_t)floor(nbVertex - 1 + 2 * 1.5 * ceil(sqrt((double)nbVertex)));
 }
+
+/* Return a cycle free tree graph */
+extern Graph* mbvst_heuristic(Graph *g);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "roy_marshall.h"
+#include "minimal_cut.hpp"
 
 Graph* grph_create(int** g,size_t n)
 { 
@@ -92,4 +93,10 @@ Graph* grph_generator(size_t nbVertex,size_t nbMaxEdges)
 
 coda_grph_compute_tc:
   return res;
+}
+
+Graph* mbvst_heuristic(Graph *g)
+{
+  printf("%d\n",minimal_cut(g)); 
+  return g;
 }
