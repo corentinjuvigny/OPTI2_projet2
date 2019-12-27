@@ -17,17 +17,23 @@ typedef struct _GraphMBVST MBVSTGraph;
 typedef const MBVSTGraph CMBVSTGraph;
 struct _GraphMBVST {
   Graph* grph; // Graphe
-  list   edges; // liste des arêtes avec poids
+  list_t   edges; // liste des arêtes avec poids
   int*   vertex_type; // Tableau contenant le type de chacun des sommets
-  void*  alpha; // 
-  void*  omega;
+  void*  aomap;
 };
 
 typedef struct _MBVSTTree MBVSTTree;
 typedef const MBVSTTree CMBVSTTree;
 struct _MBVSTTree {
   Graph* grph;
-  list edges;
+  list_t edges;
+};
+
+typedef struct _EdgeTree MBVSTedge_t;
+struct _EdgeTree {
+  edge_t edge;
+  int alpha;
+  int omega;
 };
 
 #ifdef __cplusplus
@@ -111,18 +117,19 @@ extern MBVSTGraph* MBVSTGraph_create(Graph *g);
 
 Inline void MBVSTGraph_add_edge(MBVSTGraph *g,edge_t e)
 {
-  g->grph = grph_add_edge(g->grph,e.f,e.s);
+  g->grph = grph_add_edge(g->grph,e.first,e.second);
   push(&g->edges,e);
 }
 
 Inline void MBVSTGraph_remove_edge(MBVSTGraph *g,edge_t e)
 {
-  g->grph = grph_remove_edge(g->grph,e.f,e.s);
+  g->grph = grph_remove_edge(g->grph,e.first,e.second);
   rm_l(&g->edges,e);
 }
 
-Inline void MBVSTGraph_free(MBVSTGraph *g)
-{ freel(g->edges); xfree(g->vertex_type); xfree(g); }
+extern void MBVSTGraph_free(MBVSTGraph *g);
+
+extern int MBVSTedge_cmp(const void *a, const void *b);
 
 /* MBVSTTree functions */
 
@@ -130,13 +137,13 @@ extern MBVSTTree* MBVSTTree_create(const size_t size);
 
 Inline void MBVSTTree_add_edge(MBVSTTree *t,edge_t e)
 {
-  t->grph = grph_add_edge(t->grph,e.f,e.s);
+  t->grph = grph_add_edge(t->grph,e.first,e.second);
   push(&t->edges,e);
 }
 
 Inline void MBVSTTree_remove_edge(MBVSTTree *t,edge_t e)
 {
-  t->grph = grph_remove_edge(t->grph,e.f,e.s);
+  t->grph = grph_remove_edge(t->grph,e.first,e.second);
   rm_l(&t->edges,e);
 }
 

@@ -238,24 +238,55 @@ static int grph_vertex_type(CGraph *g,const size_t k)
   return 3;
 }
 
+int MBVSTedge_cmp(const void *a, const void *b)
+{
+  const MBVSTedge_t *e1 = a;
+  const MBVSTedge_t *e2 = b;
+  if (e1->edge.first < e2->edge.first)
+    return -1;
+  if (e1->edge.first > e2->edge.first)
+    return 1;
+  if (e1->edge.second < e2->edge.second)
+    return -1;
+  if (e1->edge.second > e2->edge.second)
+    return 1;
+  return 0;
+}
+
+
 MBVSTGraph* MBVSTGraph_create(Graph *g)
 {
   size_t k,l;
   MBVSTGraph* res = malloc(sizeof(*res));
+  MBVSTedge_t* te;
 
   res->grph = g;
   res->edges = initl();
+  res->aomap = NULL;
   res->vertex_type = malloc(g->sz * sizeof(int));
   for (k = 0; k < g->sz; k++) {
     for (l = k; l < g->sz; l++) {
       if (g->m_adj[k][l] == 1) {
-        edge_t e = {k,l,0,0};
+        edge_t e = {k,l};
         push(&res->edges,e);
+        te = malloc(sizeof(*te));
+        te->edge = e;
+        te->alpha = te->omega = 1;
+        tsearch(te,&res->aomap,MBVSTedge_cmp);
       }
     }
     res->vertex_type[k] = grph_vertex_type(g,k);
   }
+
   return res;
+}
+
+void MBVSTGraph_free(MBVSTGraph *g)
+{ 
+  freel(g->edges);
+  tdestroy(g->aomap,free);
+  xfree(g->vertex_type);
+  xfree(g);
 }
 
 MBVSTTree* MBVSTTree_create(const size_t size)
@@ -266,17 +297,14 @@ MBVSTTree* MBVSTTree_create(const size_t size)
   return res;
 }
 
-static void edge_init(edge_t *e)
-{ e->alpha = e->omega = 1; }
-
-static edge_t MBVST_separate(MBVSTGraph *t,list l)
+static edge_t MBVST_separate(MBVSTGraph *t,list_t l)
 {
   long rnd;
-  list current = l;
+  list_t current = l;
 
   while (current != NULL) {
-    if (grph_degree_vertex(t->grph,current->s.f) == 1 
-        && grph_degree_vertex(t->grph,current->s.s) == 1)
+    if (grph_degree_vertex(t->grph,current->s.first) == 1 
+        && grph_degree_vertex(t->grph,current->s.second) == 1)
       return current->s;
     current = current->next;
   }
@@ -285,28 +313,57 @@ static edge_t MBVST_separate(MBVSTGraph *t,list l)
   return lget(l,rnd);
 }
 
-static void MBVST_change_type(MBVSTTree *t,list l);
-
 static void MBVST_saturate(MBVSTTree *t,MBVSTGraph *g)
 {
   size_t m;
   char vertex_marked[g->grph->sz];
-  list l = list_diff(g->edges,t->edges);
-  list lsave = l;
+  list_t l = list_diff(g->edges,t->edges);
+  list_t lsave = l;
+  MBVSTedge_t **r;
 
   while (l != NULL) {
     for (m = 0; m < g->grph->sz; m++)
       vertex_marked[m] = 0;
-    grph_connected_componant(t->grph,vertex_marked,l->s.f);
-    if (vertex_marked[l->s.s] == 1 && g->vertex_type[l->s.s] != 2) {
-      l->s.alpha = INT_MAX;
+    grph_connected_componant(t->grph,vertex_marked,l->s.first);
+    if (vertex_marked[l->s.second] == 0 && g->vertex_type[l->s.second] != 2) {
       push(&t->edges,l->s);
-      list_change_alpha(&g->edges,l->s,INT_MAX);
+      MBVSTedge_t e = {l->s,0,0};
+      r = tfind(&e,&g->aomap,MBVSTedge_cmp);
+      (*r)->alpha = INT_MAX;
     }
     l = l->next;
   }
   
   freel(lsave);
+}
+
+static void MBVST_change_omega(const void *nodep, VISIT which, void* closure)
+{
+  MBVSTedge_t *e = *(MBVSTedge_t**)nodep;
+  size_t v = *(size_t*)closure;
+  switch (which) {
+    case preorder:
+      break;
+    case endorder:
+      break;
+    case postorder:
+    case leaf:
+      if (e->edge.first == v || e->edge.second == v)
+        e->omega -= 3;
+      break;
+    default:
+      break;
+  }
+}
+
+static void MBVST_change_type(MBVSTTree *t,MBVSTGraph *g,size_t v)
+{
+  if (grph_degree_vertex(t->grph,v) > 2) {
+    g->vertex_type[v] = 3;
+    //diminuer de 3 omega des arêtes incidentes à v
+    twalk_r(g->aomap,MBVST_change_omega,&v);
+    MBVST_saturate(t,g);
+  }
 }
 
 Graph* mbvst_heuristic(Graph *g)
@@ -315,17 +372,23 @@ Graph* mbvst_heuristic(Graph *g)
   Graph *res;
   MBVSTGraph *gp;
   MBVSTTree *t;
+  list_t min_cut;
 
   t = MBVSTTree_create(g->sz);
   gp = MBVSTGraph_create(g);
  
-  map(gp->edges,edge_init);
-  map(t->edges,edge_init);
-
   for (v = 0; v < g->sz; v++) 
     if (gp->vertex_type[v] == 3)
       MBVST_saturate(t,gp);
+#if 0
+  while (nbrOfElement(t->edges) != g->sz -1) {
+     
+  }
+#endif
 
+  min_cut = minimal_cut(gp);
+
+  freel(min_cut);
   res = t->grph;
   MBVSTGraph_free(gp);
   MBVSTTree_free(t);
