@@ -7,7 +7,6 @@
 
 typedef struct _Graph Graph;
 typedef const Graph CGraph;
-
 struct _Graph {
   int**  m_adj;                 // Matrice d'adjacence
   int**  m_transitive_closure;  // Matrice d'adjacence de la fermeture transitive
@@ -16,11 +15,19 @@ struct _Graph {
 
 typedef struct _GraphMBVST MBVSTGraph;
 typedef const MBVSTGraph CMBVSTGraph;
-
 struct _GraphMBVST {
   Graph* grph; // Graphe
   list   edges; // liste des arêtes avec poids
   int*   vertex_type; // Tableau contenant le type de chacun des sommets
+  void*  alpha; // 
+  void*  omega;
+};
+
+typedef struct _MBVSTTree MBVSTTree;
+typedef const MBVSTTree CMBVSTTree;
+struct _MBVSTTree {
+  Graph* grph;
+  list edges;
 };
 
 #ifdef __cplusplus
@@ -98,7 +105,7 @@ size_t grph_nbr_connected_componants(CGraph *g,const size_t v);
 
 size_t grph_degree_vertex(CGraph *g, const size_t k);
 
-/* MBVST functions */
+/* MBVSTGraph functions */
 
 extern MBVSTGraph* MBVSTGraph_create(Graph *g);
 
@@ -111,11 +118,30 @@ Inline void MBVSTGraph_add_edge(MBVSTGraph *g,edge_t e)
 Inline void MBVSTGraph_remove_edge(MBVSTGraph *g,edge_t e)
 {
   g->grph = grph_remove_edge(g->grph,e.f,e.s);
-  pull(&g->edges);
+  rm_l(&g->edges,e);
 }
 
 Inline void MBVSTGraph_free(MBVSTGraph *g)
 { freel(g->edges); xfree(g->vertex_type); xfree(g); }
+
+/* MBVSTTree functions */
+
+extern MBVSTTree* MBVSTTree_create(const size_t size);
+
+Inline void MBVSTTree_add_edge(MBVSTTree *t,edge_t e)
+{
+  t->grph = grph_add_edge(t->grph,e.f,e.s);
+  push(&t->edges,e);
+}
+
+Inline void MBVSTTree_remove_edge(MBVSTTree *t,edge_t e)
+{
+  t->grph = grph_remove_edge(t->grph,e.f,e.s);
+  rm_l(&t->edges,e);
+}
+
+Inline void MBVSTTree_free(MBVSTTree *t)
+{ freel(t->edges); xfree(t); }
 
 /* Return a cycle free tree graph */
 extern Graph* mbvst_heuristic(Graph *g);

@@ -258,6 +258,14 @@ MBVSTGraph* MBVSTGraph_create(Graph *g)
   return res;
 }
 
+MBVSTTree* MBVSTTree_create(const size_t size)
+{
+  MBVSTTree* res = malloc(sizeof(*res));
+  res->grph = grph_empty(size);
+  res->edges = initl();
+  return res;
+}
+
 static void edge_init(edge_t *e)
 { e->alpha = e->omega = 1; }
 
@@ -277,9 +285,9 @@ static edge_t MBVST_separate(MBVSTGraph *t,list l)
   return lget(l,rnd);
 }
 
-static void MBVST_change_type(MBVSTGraph *t,list l);
+static void MBVST_change_type(MBVSTTree *t,list l);
 
-static void MBVST_saturate(MBVSTGraph *t,MBVSTGraph *g)
+static void MBVST_saturate(MBVSTTree *t,MBVSTGraph *g)
 {
   size_t m;
   char vertex_marked[g->grph->sz];
@@ -304,11 +312,11 @@ static void MBVST_saturate(MBVSTGraph *t,MBVSTGraph *g)
 Graph* mbvst_heuristic(Graph *g)
 {
   size_t v;
-  Graph* res;
-  MBVSTGraph *t, *gp;
+  Graph *res;
+  MBVSTGraph *gp;
+  MBVSTTree *t;
 
-  res = grph_empty(g->sz);
-  t = MBVSTGraph_create(res);
+  t = MBVSTTree_create(g->sz);
   gp = MBVSTGraph_create(g);
  
   map(gp->edges,edge_init);
@@ -320,7 +328,7 @@ Graph* mbvst_heuristic(Graph *g)
 
   res = t->grph;
   MBVSTGraph_free(gp);
-  MBVSTGraph_free(t);
+  MBVSTTree_free(t);
 
   return res;
 }

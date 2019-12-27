@@ -39,6 +39,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <search.h>
 #include <time.h>
 #include <limits.h>
 #include <errno.h>
