@@ -261,6 +261,24 @@ MBVSTGraph* MBVSTGraph_create(Graph *g)
 static void edge_init(edge_t *e)
 { e->alpha = e->omega = 1; }
 
+static edge_t MBVST_separate(MBVSTGraph *t,list l)
+{
+  long rnd;
+  list current = l;
+
+  while (current != NULL) {
+    if (grph_degree_vertex(t->grph,current->s.f) == 1 
+        && grph_degree_vertex(t->grph,current->s.s) == 1)
+      return current->s;
+    current = current->next;
+  }
+  rnd = rand()%nbrOfElement(l);
+  
+  return lget(l,rnd);
+}
+
+static void MBVST_change_type(MBVSTGraph *t,list l);
+
 static void MBVST_saturate(MBVSTGraph *t,MBVSTGraph *g)
 {
   size_t m;
