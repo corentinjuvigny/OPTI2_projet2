@@ -3,10 +3,10 @@ LIBFORMAT  = static_pic
 CPLEXDIR   = /home/kodra/Documents/RO/OPT2/cplex
 CPLEXLIBDIR  = $(CPLEXDIR)/lib/$(SYSTEM)/$(LIBFORMAT)
 CPLEXFLAGS = -lcplex -lm -pthread
-CFLAGS= -Wall -Wextra -O3
+CFLAGS= -Wall -Wextra -g#-O3
 CC=gcc
 CCPP=g++
-OBJECTSLIB=  graph.o roy_marshall.o tools.o list.o
+OBJECTSLIB=  graph.o roy_marshall.o tools.o list.o fifo.o
 CPPOBJECTS= maincpp.o minimal_cut.o
 OBJECTS= main.o $(OBJECTSLIB) #liste de tous les .o a creer a partir des .c
 

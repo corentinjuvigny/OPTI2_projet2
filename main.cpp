@@ -56,6 +56,25 @@ int main()
     printf("\n");
   }
   printf("\n");
+  
+  g->m_adj[0][0] = 0;
+  g->m_adj[0][1] = 1;
+  g->m_adj[0][2] = 1;
+  g->m_adj[0][3] = 1;
+  g->m_adj[1][0] = 1;
+  g->m_adj[1][1] = 0;
+  g->m_adj[1][2] = 0;
+  g->m_adj[1][3] = 0;
+  g->m_adj[2][0] = 1;
+  g->m_adj[2][1] = 0;
+  g->m_adj[2][2] = 0;
+  g->m_adj[2][3] = 0;
+  g->m_adj[3][0] = 1;
+  g->m_adj[3][1] = 0;
+  g->m_adj[3][2] = 0;
+  g->m_adj[3][3] = 0;
+
+  printf("nbr connected componants = %ld, degree = %ld\n",grph_nbr_connected_componants(g,1),grph_degree_vertex(g,1));
 
   for (i = 0; i < n; i++)
     free(g->m_adj[i]);
@@ -63,7 +82,7 @@ int main()
 
   grph_free(g);
 
-  m = 100;
+  m = 50;
   g = grph_generator(m,grph_formula(m));
 
   for (i = 0; i < m; i++) {
@@ -82,7 +101,13 @@ int main()
 
   printf("%ld\n",grph_formula(m));
 
-  mbvst_heuristic(g);
+  Graph* t = mbvst_heuristic(g);
+
+  for (i = 0; i < m; i++)
+    free(t->m_adj[i]);
+  free(t->m_adj);
+
+  grph_free(t);
 
   for (i = 0; i < m; i++)
     free(g->m_adj[i]);

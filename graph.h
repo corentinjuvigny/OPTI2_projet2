@@ -3,6 +3,7 @@
 
 #include "tools.h"
 #include "list.h"
+#include "fifo.h"
 
 typedef struct _Graph Graph;
 typedef const Graph CGraph;
@@ -19,11 +20,16 @@ typedef const MBVSTGraph CMBVSTGraph;
 struct _GraphMBVST {
   Graph* grph; // Graphe
   list   edges; // liste des arêtes avec poids
+  int*   vertex_type; // Tableau contenant le type de chacun des sommets
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define FREE_MADJ(g,i) for (i = 0; i < g->sz; i++)\
+                          free(g->m_adj[i]);\
+                       free(g->m_adj);
 
 static void free_transitive_closure(Graph *g)
 {
@@ -43,6 +49,12 @@ Inline Graph* grph_alloc()
 #endif
 
 extern Graph* grph_create(int **g,size_t n);
+
+extern Graph* grph_empty(size_t n);
+
+extern Graph* grph_cpy(CGraph *g);
+
+extern Graph* grph_cut_cpy(CGraph *g,size_t v);
 
 Inline void grph_free(Graph *g) { free_transitive_closure(g); xfree(g); }
 
@@ -81,6 +93,13 @@ Inline size_t grph_formula(size_t nbVertex)
   return (size_t)floor(nbVertex - 1 + 2 * 1.5 * ceil(sqrt((double)nbVertex)));
 }
 
+/* Return the number of connected componants in G - v */
+size_t grph_nbr_connected_componants(CGraph *g,const size_t v);
+
+size_t grph_degree_vertex(CGraph *g, const size_t k);
+
+/* MBVST functions */
+
 extern MBVSTGraph* MBVSTGraph_create(Graph *g);
 
 Inline void MBVSTGraph_add_edge(MBVSTGraph *g,edge_t e)
@@ -96,7 +115,7 @@ Inline void MBVSTGraph_remove_edge(MBVSTGraph *g,edge_t e)
 }
 
 Inline void MBVSTGraph_free(MBVSTGraph *g)
-{ freel(g->edges); grph_free(g->grph); xfree(g); }
+{ freel(g->edges); xfree(g->vertex_type); xfree(g); }
 
 /* Return a cycle free tree graph */
 extern Graph* mbvst_heuristic(Graph *g);
