@@ -62,7 +62,7 @@ extern void printfl(Clist_t l);
 extern int isInprec(Clist_t* l, int i, edge_t k);
 
 /*renvoie le nombre d'éléments de la liste V*/
-extern long nbrOfElement(Clist_t l);
+extern unsigned long nbrOfElement(Clist_t l);
 
 /*libère l'espace mémoire alloué à l*/
 extern void freel(list_t l);

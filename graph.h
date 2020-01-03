@@ -36,6 +36,9 @@ struct _EdgeTree {
   int omega;
 };
 
+#define INF 5000000 /* We can't use INT_MAX since it causes an issue
+                       in the stoer_wagner_min_cut's algorithm */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -88,6 +91,15 @@ extern Graph* grph_remove_edge(Graph *g,size_t a,size_t b);
 
 extern void grph_compute_tc(Graph *g);
 
+Inline size_t grph_nbr_edges(Graph *g)
+{
+  size_t i,j,count = 0;
+  for (i = 0; i < g->sz; i++)
+    for (j = i; j < g->sz; j++)
+      if (g->m_adj[i][j]) count++;
+  return count;
+}
+
 /* Return 1 if a and b linked in g, else 0 */
 Inline int vertex_are_connected(CGraph *g,size_t a,size_t b)
 { return g->m_transitive_closure[a][b]; }
@@ -117,7 +129,7 @@ extern MBVSTGraph* MBVSTGraph_create(Graph *g);
 
 Inline void MBVSTGraph_add_edge(MBVSTGraph *g,edge_t e)
 {
-  g->grph = grph_add_edge(g->grph,e.first,e.second);
+  g->grph = grph_add_edge_wthout_tc(g->grph,e.first,e.second);
   push(&g->edges,e);
 }
 
@@ -137,7 +149,7 @@ extern MBVSTTree* MBVSTTree_create(const size_t size);
 
 Inline void MBVSTTree_add_edge(MBVSTTree *t,edge_t e)
 {
-  t->grph = grph_add_edge(t->grph,e.first,e.second);
+  t->grph = grph_add_edge_wthout_tc(t->grph,e.first,e.second);
   push(&t->edges,e);
 }
 
@@ -151,6 +163,7 @@ Inline void MBVSTTree_free(MBVSTTree *t)
 { freel(t->edges); xfree(t); }
 
 /* Return a cycle free tree graph */
+
 extern Graph* mbvst_heuristic(Graph *g);
 
 #ifdef __cplusplus

@@ -27,7 +27,7 @@ edge_t lget(list_t l,long n)
   long cmp = 0;
   edge_t res = {0,0};
   while (l != NULL) {
-    if (cmp == n) {
+    if (cmp++ == n) {
       res = l->s;
       break;
     }
@@ -131,7 +131,7 @@ int isInprec(Clist_t* V, int i, edge_t k)
     return 1;
 }
 
-long nbrOfElement(Clist_t l)
+unsigned long nbrOfElement(Clist_t l)
 {
     long n = 0;
     list_t q = l;

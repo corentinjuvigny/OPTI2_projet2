@@ -64,13 +64,7 @@ extern void* xmalloc(size_t n);
  */
 extern void* xcalloc(size_t nmemb,size_t size);
 
-/**
- * This function prints a string
- * @param str_to_print the string we want to print.
- */
-extern void print_string(void* str_to_print);
-
-#define xfree(p) do { if ( (p)!= 0 ) free(p); } while(0)
+#define xfree(p) do { if ( (p) != NULL ) free(p); } while(0)
 
 #ifdef __cplusplus
 }

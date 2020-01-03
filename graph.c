@@ -177,7 +177,7 @@ static int all_vertex_are_marked(size_t* v,const char* vertex_marked,const size_
 {
   size_t i;
   for (i = 0; i < len; i++)
-    if (!vertex_marked[i]) {
+    if ( !vertex_marked[i] ) {
       *v = i;
       return 0;
     }
@@ -186,7 +186,7 @@ static int all_vertex_are_marked(size_t* v,const char* vertex_marked,const size_
 
 size_t grph_nbr_connected_componants(CGraph *cg,const size_t v)
 {
-  if (cg->sz == 1) return 0;
+  if ( cg->sz == 1 ) return 0;
   size_t res = 0, i, k;
   Graph* g = grph_cut_cpy(cg,v);
   char vertex_marked[g->sz];
@@ -219,21 +219,21 @@ static int grph_vertex_type(CGraph *g,const size_t k)
 {
   size_t cg, dg = grph_degree_vertex(g,k);
   
-  switch (dg) {
+  switch ( dg ) {
     case 0 :
-      //fprintf(stderr,"Error : degree of %ld can't be null\n",k);
+      fprintf(stderr,"Error : degree of %ld can't be null\n",k);
       return -1;
     case 1:
       return 0;
     case 2:
       cg = grph_nbr_connected_componants(g,k);
-      if (cg == 1) return 1;
-      if (cg == 2) return 0;
+      if ( cg == 1 ) return 1;
+      if ( cg == 2 ) return 0;
       fprintf(stderr,"Error : impossible case : k = %ld, cg = %ld and dg = %ld)\n",k,cg,dg);
       break;
     default:
       cg = grph_nbr_connected_componants(g,k);
-      if (cg <= 2) return 2;
+      if ( cg <= 2 ) return 2;
   }
   return 3;
 }
@@ -242,17 +242,16 @@ int MBVSTedge_cmp(const void *a, const void *b)
 {
   const MBVSTedge_t *e1 = a;
   const MBVSTedge_t *e2 = b;
-  if (e1->edge.first < e2->edge.first)
+  if ( e1->edge.first < e2->edge.first )
     return -1;
-  if (e1->edge.first > e2->edge.first)
+  if ( e1->edge.first > e2->edge.first )
     return 1;
-  if (e1->edge.second < e2->edge.second)
+  if ( e1->edge.second < e2->edge.second )
     return -1;
-  if (e1->edge.second > e2->edge.second)
+  if ( e1->edge.second > e2->edge.second )
     return 1;
   return 0;
 }
-
 
 MBVSTGraph* MBVSTGraph_create(Graph *g)
 {
@@ -266,7 +265,7 @@ MBVSTGraph* MBVSTGraph_create(Graph *g)
   res->vertex_type = malloc(g->sz * sizeof(int));
   for (k = 0; k < g->sz; k++) {
     for (l = k; l < g->sz; l++) {
-      if (g->m_adj[k][l] == 1) {
+      if ( g->m_adj[k][l] == 1 ) {
         edge_t e = {k,l};
         push(&res->edges,e);
         te = malloc(sizeof(*te));
@@ -297,14 +296,14 @@ MBVSTTree* MBVSTTree_create(const size_t size)
   return res;
 }
 
-static edge_t MBVST_separate(MBVSTGraph *t,list_t l)
+static edge_t MBVST_separate(MBVSTTree *t,list_t l)
 {
   long rnd;
   list_t current = l;
 
   while (current != NULL) {
-    if (grph_degree_vertex(t->grph,current->s.first) == 1 
-        && grph_degree_vertex(t->grph,current->s.second) == 1)
+    if ( grph_degree_vertex(t->grph,current->s.first) == 1 
+        && grph_degree_vertex(t->grph,current->s.second) == 1 )
       return current->s;
     current = current->next;
   }
@@ -313,31 +312,42 @@ static edge_t MBVST_separate(MBVSTGraph *t,list_t l)
   return lget(l,rnd);
 }
 
-static void MBVST_saturate(MBVSTTree *t,MBVSTGraph *g)
+static void MBVST_saturate(MBVSTTree *t,MBVSTGraph *g,const size_t v)
 {
-  size_t m;
+  size_t m,w;
   char vertex_marked[g->grph->sz];
   list_t l = list_diff(g->edges,t->edges);
   list_t lsave = l;
   MBVSTedge_t **r;
 
   while (l != NULL) {
+    if ( l->s.first == v )
+      w = l->s.second;
+    else {
+      if ( l->s.second == v ) {
+        w = l->s.first;
+      } else goto next_step;
+    }
     for (m = 0; m < g->grph->sz; m++)
       vertex_marked[m] = 0;
-    grph_connected_componant(t->grph,vertex_marked,l->s.first);
-    if (vertex_marked[l->s.second] == 0 && g->vertex_type[l->s.second] != 2) {
-      push(&t->edges,l->s);
+    grph_connected_componant(t->grph,vertex_marked,v);
+    if ( vertex_marked[w] == 0 && g->vertex_type[w] != 2 ) {
+      MBVSTTree_add_edge(t,l->s);
       MBVSTedge_t e = {l->s,0,0};
       r = tfind(&e,&g->aomap,MBVSTedge_cmp);
-      (*r)->alpha = INT_MAX;
+      if ( r == NULL ) {
+        goto next_step;
+      }
+      (*r)->alpha = INF;
     }
+next_step:
     l = l->next;
   }
   
   freel(lsave);
 }
 
-static void MBVST_change_omega(const void *nodep, VISIT which, void* closure)
+static void MBVST_reduce_omega(const void *nodep, VISIT which, void* closure)
 {
   MBVSTedge_t *e = *(MBVSTedge_t**)nodep;
   size_t v = *(size_t*)closure;
@@ -348,8 +358,29 @@ static void MBVST_change_omega(const void *nodep, VISIT which, void* closure)
       break;
     case postorder:
     case leaf:
-      if (e->edge.first == v || e->edge.second == v)
-        e->omega -= 3;
+      if ( e->edge.first == v || e->edge.second == v ) {
+        e->omega -= e->omega < 3 ? e->omega : 3;
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+static void MBVST_increase_omega(const void *nodep, VISIT which, void* closure)
+{
+  MBVSTedge_t *e = *(MBVSTedge_t**)nodep;
+  size_t v = *(size_t*)closure;
+  switch (which) {
+    case preorder:
+      break;
+    case endorder:
+      break;
+    case postorder:
+    case leaf:
+      if ( e->edge.first == v || e->edge.second == v ) {
+        e->omega += 1;
+      }
       break;
     default:
       break;
@@ -358,37 +389,59 @@ static void MBVST_change_omega(const void *nodep, VISIT which, void* closure)
 
 static void MBVST_change_type(MBVSTTree *t,MBVSTGraph *g,size_t v)
 {
-  if (grph_degree_vertex(t->grph,v) > 2) {
+  if ( grph_degree_vertex(t->grph,v) > 2 ) {
     g->vertex_type[v] = 3;
     //diminuer de 3 omega des arêtes incidentes à v
-    twalk_r(g->aomap,MBVST_change_omega,&v);
-    MBVST_saturate(t,g);
+    twalk_r(g->aomap,MBVST_reduce_omega,&v);
+    MBVST_saturate(t,g,v);
   }
 }
 
 Graph* mbvst_heuristic(Graph *g)
 {
   size_t v;
+  int omega;
+  edge_t e;
   Graph *res;
   MBVSTGraph *gp;
   MBVSTTree *t;
-  list_t min_cut;
+  list_t min_cut_l;
+  MBVSTedge_t **r, emap;
 
   t = MBVSTTree_create(g->sz);
   gp = MBVSTGraph_create(g);
  
   for (v = 0; v < g->sz; v++) 
-    if (gp->vertex_type[v] == 3)
-      MBVST_saturate(t,gp);
-#if 0
-  while (nbrOfElement(t->edges) != g->sz -1) {
-     
+    if ( gp->vertex_type[v] == 3 )
+      MBVST_saturate(t,gp,v);
+
+  while (nbrOfElement(t->edges) < g->sz - 1) {
+    min_cut_l = minimal_cut(gp,&omega);
+    if ( omega == 3 ) {
+      e = MBVST_separate(t,min_cut_l);
+    } else {
+      e = lget(min_cut_l,rand()%nbrOfElement(min_cut_l));
+    }
+    MBVSTTree_add_edge(t,e);
+    if ( gp->vertex_type[e.first] == 2 ) {
+      twalk_r(gp->aomap,MBVST_increase_omega,&(e.first));
+      MBVST_change_type(t,gp,e.first);
+    }
+    if ( gp->vertex_type[e.second] == 2 ) {
+      twalk_r(gp->aomap,MBVST_increase_omega,&(e.second));
+      MBVST_change_type(t,gp,e.first);
+    }
+    emap.edge = e;
+    r = tfind(&emap,&gp->aomap,MBVSTedge_cmp);
+    if ( r == NULL ) {
+      freel(min_cut_l);
+      goto TERMINATE;
+    }
+    (*r)->alpha = INF;
+    freel(min_cut_l);
   }
-#endif
 
-  min_cut = minimal_cut(gp);
-
-  freel(min_cut);
+TERMINATE:
   res = t->grph;
   MBVSTGraph_free(gp);
   MBVSTTree_free(t);

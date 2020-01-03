@@ -21,7 +21,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdlib.h>
 #include <stdio.h>
 
-extern void* xmalloc(size_t n)
+void* xmalloc(size_t n)
 {
   void* ptr = malloc(n);
   if (ptr == NULL)
@@ -29,16 +29,10 @@ extern void* xmalloc(size_t n)
   return ptr;
 }
 
-extern void* xcalloc(size_t nmemb,size_t size)
+void* xcalloc(size_t nmemb,size_t size)
 {
   void* ptr = calloc(nmemb,size);
   if (ptr == NULL)
     fprintf(stderr, "Error not enough memory\n");
   return ptr;
-}
-
-extern void print_string(void* str_to_print)
-{
-	char* str = (char*)str_to_print;
-	printf("%s\n",str);
 }

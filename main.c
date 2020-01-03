@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "pl.h"
 
 int main()
 {
@@ -56,7 +57,7 @@ int main()
     printf("\n");
   }
   printf("\n");
-  
+
   g->m_adj[0][0] = 0;
   g->m_adj[0][1] = 1;
   g->m_adj[0][2] = 1;
@@ -82,16 +83,9 @@ int main()
 
   grph_free(g);
 
-  m = 50;
+  m = 20;
   g = grph_generator(m,grph_formula(m));
 
-  for (i = 0; i < m; i++) {
-    for (j = 0; j < m; j++)
-      printf("%d ",g->m_adj[i][j]);
-    printf("\n");
-  }
-  printf("\n");
-  
   int count=0;
   for (i = 0; i < m; i++)
     for (j = i; j < m; j++)
@@ -100,41 +94,24 @@ int main()
   printf("is connected : %d\n",grph_is_connected(g));
 
   printf("%ld\n",grph_formula(m));
-  
-#if 0
-  void *root;
 
-  for (i = 0; i < 15; i++) {
-    for (j = i; j < 15; j++) {
-      MBVSTedge_t *e = malloc(sizeof(*e));
-      e->edge.u = i;
-      e->edge.v = j;
-      tsearch(e,&root,MBVSTedge_cmp);
-    }
-  }
-
-  MBVSTedge_t e = {{5,10},0,0};
-  MBVSTedge_t **r = tfind(&e,&root,MBVSTedge_cmp);
-
-  if (r == NULL)
-    fprintf(stderr,"r is null\n");
-  else
-    fprintf(stderr,"%ld %ld\n",(*r)->edge.u,(*r)->edge.v);
-
-  tdestroy(root,free);
-  exit(0);
-#endif
   Graph* t = mbvst_heuristic(g);
 
+  grph_compute_tc(t);
+
+  count = 0;
   for (i = 0; i < m; i++)
-    free(t->m_adj[i]);
-  free(t->m_adj);
+    for (j = i; j < m; j++)
+      if (t->m_adj[i][j]) count++;
+  printf("t is connected : %d and its size is %d\n",grph_is_connected(t),count);
+
+  FREE_MADJ(t,i);
 
   grph_free(t);
 
-  for (i = 0; i < m; i++)
-    free(g->m_adj[i]);
-  free(g->m_adj);
+  mbvst_pl(g);
+
+  FREE_MADJ(g,i);
 
   grph_free(g);
 
