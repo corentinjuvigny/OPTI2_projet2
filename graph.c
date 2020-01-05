@@ -158,7 +158,7 @@ static void grph_connected_componant(CGraph *g,char *vertex_marked,const size_t 
 {
   size_t s,t;
   fifo_t f = fifo_create(g->sz,sizeof(v));
-  
+
   fifo_add(f,&v);
   vertex_marked[v] = 1;
   while (!fifo_is_empty(f)) {
@@ -391,7 +391,7 @@ static void MBVST_change_type(MBVSTTree *t,MBVSTGraph *g,size_t v)
 {
   if ( grph_degree_vertex(t->grph,v) > 2 ) {
     g->vertex_type[v] = 3;
-    //diminuer de 3 omega des arêtes incidentes à v
+    //diminuer de 3 omega les arêtes incidentes à v
     twalk_r(g->aomap,MBVST_reduce_omega,&v);
     MBVST_saturate(t,g,v);
   }

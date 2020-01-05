@@ -55,7 +55,7 @@ list_t minimal_cut(MBVSTGraph *g,int *omega)
 
   for (i = 0; i < n; i++) {
     if (get(parities,edges[i].first) != get(parities,edges[i].second)) {
-      if (ow[i] > *omega) 
+      if (ow[i] > *omega)
         continue;
       if (ow[i] < *omega) {
         *omega = ow[i];

@@ -43,9 +43,9 @@ struct _EdgeTree {
 extern "C" {
 #endif
 
-#define FREE_MADJ(g,i) for (i = 0; i < g->sz; i++)\
-                          free(g->m_adj[i]);\
-                       free(g->m_adj);
+#define FREE_MADJ(g,i) for (i = 0; i < (g)->sz; i++)\
+                          free((g)->m_adj[i]);\
+                       free((g)->m_adj);
 
 static void free_transitive_closure(Graph *g)
 {
